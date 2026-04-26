@@ -58,15 +58,17 @@ def require_admin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         auth = request.authorization
-        print(auth)
-        print(os.environ.get("ADMIN_PASSWORD"))
+        expected = os.environ.get('ADMIN_PASSWORD')
 
-        if not auth:
-            return "No auth provided", 401
+        if not auth or auth.username != "admin" or auth.password != expected:
+            return Response(
+                "Authentication required",
+                401,
+                {"WWW-Authenticate": 'Basic realm="Ethniq Loom Admin"'}
+            )
 
-        if auth.password != os.environ.get("ADMIN_PASSWORD"):
-            return "Wrong password", 401
         return f(*args, **kwargs)
+
     return decorated
 
 
