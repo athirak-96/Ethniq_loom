@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ethniq Loom</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Razorpay -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+
+  <div class="nav-left"></div> <!-- keep empty or logo later -->
+
+  <div class="nav-right">
+    <div class="cart-icon" onclick="toggleCart()">
+      🛍️
+      <span id="cart-count" class="cart-count">0</span>
+    </div>
+  </div>
+
+</nav>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <div class="hero-text">
+    <h1>Timeless Ethnic Elegance</h1>
+    <p>Handpicked sarees & kurta sets crafted for modern grace</p>
+    <button onclick="scrollToProducts()">Shop Now</button>
+  </div>
+</section>
+
+<!-- CATEGORY TABS -->
+<div class="category-tabs">
+  <div class="tab active" onclick="filterProducts('all', this)">All</div>
+  <div class="tab" onclick="filterProducts('saree', this)">Saree</div>
+  <div class="tab" onclick="filterProducts('kurta', this)">Kurta</div>
+</div>
+
+<div id="subcategories" class="subcategories"></div>
+
+<div class="sort-wrapper">
+  <label>Sort by &nbsp;</label>
+  <select id="sortSelect" onchange="sortProducts()">
+    <option value="default">✨ Featured</option>
+    <option value="new">🆕 New Arrivals</option>
+    <option value="priceLowHigh">⬆ Price: Low → High</option>
+    <option value="priceHighLow">⬇ Price: High → Low</option>
+    <option value="nameAZ">A → Z</option>
+    <option value="nameZA">Z → A</option>
+  </select>
+</div>
+
+<!-- PRODUCTS -->
+<section id="products" class="products"></section>
+
+<!-- CART -->
+<div id="cart" class="cart">
+
+  <div class="cart-header">
+    <h3>Your Cart</h3>
+    <span class="close-cart" onclick="toggleCart()">✖</span>
+  </div>
+
+  <div id="cart-items" class="cart-items"></div>
+
+  <div class="cart-footer">
+
+    <p class="delivery">Free delivery across India 🚚</p>
+
+    <h4 id="total">Total: ₹0</h4>
+
+    <div class="cart-info">
+      <p>✔ Secure Payment</p>
+      <p>✔ Premium Quality</p>
+      <p>✔ Easy Checkout</p>
+    </div>
+
+    <button onclick="checkout()">Proceed to Pay</button>
+
+  </div>
+
+</div>
+
+<!-- ADDRESS MODAL -->
+<div id="address-modal" class="modal">
+  <div class="modal-content address-modal-content">
+
+    <span class="close-modal" onclick="closeAddressModal()">✖</span>
+    <h3>Delivery Address</h3>
+
+    <form id="address-form" onsubmit="submitAddress(event)">
+      <input type="text"  id="addr-name"    placeholder="Full Name"                    required>
+      <input type="tel"   id="addr-phone"   placeholder="Phone Number"  pattern="\d{10}" required>
+      <input type="text"  id="addr-line"    placeholder="House no., Street, Area"       required>
+      <div class="addr-row">
+        <input type="text" id="addr-city"   placeholder="City"    required>
+        <input type="text" id="addr-state"  placeholder="State"   required>
+      </div>
+      <input type="text"  id="addr-pincode" placeholder="Pincode" pattern="\d{6}"       required>
+      <button type="submit">Continue to Payment →</button>
+    </form>
+
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div id="product-modal" class="modal">
+  <div class="modal-content">
+
+    <span class="close-modal" onclick="closeModal()">✖</span>
+
+    <img id="modal-img">
+    <h2 id="modal-name"></h2>
+    <p id="modal-price"></p>
+
+    <button id="modal-cart">Add to Cart</button>
+    <button id="modal-buy">Buy Now</button>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="cart-popup" class="cart-popup">
+  <img id="popup-img" src="">
+  <div class="popup-info">
+    <p class="popup-title">Added to bag</p>
+    <p id="popup-name"></p>
+    <div class="popup-actions">
+      <button onclick="toggleCart()">View Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- WHATSAPP -->
+<a href="https://wa.me/918848519433" class="whatsapp">Chat</a>
+
+<script src="script.js"></script>
+
+<footer class="footer">
+
+  <div class="footer-container">
+
+    <!-- BRAND -->
+    <div class="footer-section">
+      <h3>Ethniq Loom</h3>
+      <p>Timeless ethnic wear crafted with elegance and love 💜</p>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div class="footer-section">
+      <h4>Quick Links</h4>
+      <p onclick="scrollToProducts()">Shop</p>
+      <p>About Us</p>
+      <p>Contact</p>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="footer-section">
+      <h4>Contact</h4>
+      <p>📞 +91 8848519433</p>
+      <p>📧 ethniqloom@gmail.com</p>
+      <p>📍 India</p>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="footer-bottom">
+    <p>© 2026 Ethniq Loom. All rights reserved.</p>
+  </div>
+
+</footer>
+
+</body>
+</html>

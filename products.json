@@ -1,0 +1,33 @@
+[
+    {
+        "name": "Kanchi Cotton Saree",
+        "price": 2500,
+        "image": "images/saree1.jpg",
+        "category": "saree",
+        "type": "kanchi",
+        "soldCount": 0
+    },
+    {
+        "name": "Linen Saree",
+        "price": 2200,
+        "image": "images/saree2.jpg",
+        "category": "saree",
+        "type": "linen",
+        "soldCount": 0
+    },
+    {
+        "name": "Mul Cotton Saree",
+        "price": 1800,
+        "image": "images/saree3.jpg",
+        "category": "saree",
+        "type": "mulcotton",
+        "soldCount": 0
+    },
+  {
+    "name": "Jaipur Kurta Set",
+    "price": 1299,
+    "image": "images/kurta1.jpg",
+    "category": "kurta",
+    "soldCount": 0
+  }
+]
