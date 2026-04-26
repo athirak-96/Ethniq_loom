@@ -2,8 +2,7 @@ from flask import Flask, send_from_directory, request, jsonify, Response
 from werkzeug.utils import secure_filename
 from functools import wraps
 import razorpay
-import psycopg2
-import psycopg2.extras
+import sqlite3
 import hashlib
 import hmac
 import os
@@ -17,33 +16,34 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 def get_db():
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.executescript('''
         CREATE TABLE IF NOT EXISTS products (
-            id        SERIAL PRIMARY KEY,
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
             name      TEXT    NOT NULL,
             price     INTEGER NOT NULL,
             image     TEXT,
             category  TEXT,
             type      TEXT,
-            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            createdAt INTEGER DEFAULT (strftime('%s','now')),
             soldCount INTEGER DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS orders (
-            id                SERIAL PRIMARY KEY,
+            id                INTEGER PRIMARY KEY AUTOINCREMENT,
             items             TEXT    NOT NULL,
             total             INTEGER NOT NULL,
             address           TEXT,
             razorpay_order_id TEXT,
             status            TEXT    DEFAULT 'pending',
-            createdAt         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            createdAt         INTEGER DEFAULT (strftime('%s','now'))
         );
     ''')
     conn.commit()
@@ -105,25 +105,12 @@ def add_product():
     cursor = conn.cursor()
     cursor.execute('''
         INSERT INTO products (name, price, image, category, type, createdAt, soldCount)
-        VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP, 0)
-    ''', (name, price, f"images/{filename}", category.lower(), type_))
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (name, price, f"images/{filename}", category.lower(), type_, int(time.time()), 0))
     conn.commit()
     conn.close()
 
     return jsonify({"message": "Product added successfully!"})
-
-
-# ======================
-# GET PRODUCTS
-# ======================
-@app.route('/products', methods=['GET'])
-def get_products():
-    conn   = get_db()
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cursor.execute("SELECT * FROM products")
-    products = cursor.fetchall()
-    conn.close()
-    return jsonify(products)
 
 
 # ======================
@@ -134,7 +121,7 @@ def get_products():
 def delete_product(product_id):
     conn   = get_db()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
+    cursor.execute("DELETE FROM products WHERE id = ?", (product_id,))
     conn.commit()
     conn.close()
     return jsonify({"message": "Product deleted successfully!"})
@@ -155,16 +142,16 @@ def update_product(product_id):
     update_values = []
 
     if name:
-        update_fields.append("name = %s")
+        update_fields.append("name = ?")
         update_values.append(name)
     if price:
-        update_fields.append("price = %s")
+        update_fields.append("price = ?")
         update_values.append(price)
     if category:
-        update_fields.append("category = %s")
+        update_fields.append("category = ?")
         update_values.append(category.lower())
     if type_:
-        update_fields.append("type = %s")
+        update_fields.append("type = ?")
         update_values.append(type_)
 
     if 'image' in request.files:
@@ -172,7 +159,7 @@ def update_product(product_id):
         filename   = secure_filename(image_file.filename)
         filepath   = os.path.join(UPLOAD_FOLDER, filename)
         image_file.save(filepath)
-        update_fields.append("image = %s")
+        update_fields.append("image = ?")
         update_values.append(f"images/{filename}")
 
     if not update_fields:
@@ -182,7 +169,7 @@ def update_product(product_id):
 
     conn   = get_db()
     cursor = conn.cursor()
-    cursor.execute(f"UPDATE products SET {', '.join(update_fields)} WHERE id = %s", update_values)
+    cursor.execute(f"UPDATE products SET {', '.join(update_fields)} WHERE id = ?", update_values)
     conn.commit()
     conn.close()
 
@@ -218,12 +205,12 @@ def create_order():
     cursor = conn.cursor()
     cursor.execute('''
         INSERT INTO orders (items, total, address, razorpay_order_id, status, createdAt)
-        VALUES (%s, %s, %s, %s, 'pending', CURRENT_TIMESTAMP)
-    ''', (json.dumps(items), total, json.dumps(address), rz_order['id']))
+        VALUES (?, ?, ?, ?, 'pending', ?)
+    ''', (json.dumps(items), total, json.dumps(address), rz_order['id'], int(time.time())))
 
     for item in items:
         cursor.execute(
-            "UPDATE products SET soldCount = soldCount + %s WHERE name = %s",
+            "UPDATE products SET soldCount = soldCount + ? WHERE name = ?",
             (item['qty'], item['name'])
         )
 
@@ -252,7 +239,7 @@ def verify_payment():
 
     conn   = get_db()
     cursor = conn.cursor()
-    cursor.execute("UPDATE orders SET status = 'paid' WHERE razorpay_order_id = %s", (order_id,))
+    cursor.execute("UPDATE orders SET status = 'paid' WHERE razorpay_order_id = ?", (order_id,))
     conn.commit()
     conn.close()
 
