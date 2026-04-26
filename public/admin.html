@@ -6,14 +6,11 @@
 <body>
 
 <h2>Add Product</h2>
-<!-- <h4>Shop By</h4> -->
-
 <form id="productForm">
   <input type="text" placeholder="Name" name="name" required><br><br>
   <input type="number" placeholder="Price" name="price" required><br><br>
 
   <select name="category">
-    <!-- <option value="kurta">Kurta</option> -->
     <option value="saree">Saree</option>
   </select><br><br>
 
@@ -31,23 +28,73 @@
 
 <p id="msg"></p>
 
+<h2>Manage Products</h2>
+<div id="productsList"></div>
+
 <script>
+async function loadProducts() {
+  const res = await fetch('/products');
+  const products = await res.json();
+  const list = document.getElementById('productsList');
+  list.innerHTML = products.map(p => `
+    <div style="border:1px solid #ccc; margin:10px; padding:10px;">
+      <h3>${p.name}</h3>
+      <p>Price: ${p.price}</p>
+      <img src="/${p.image}" width="100"><br>
+      <button onclick="deleteProduct(${p.id})">Delete</button>
+      <form onsubmit="updateProduct(event, ${p.id})">
+        <input type="text" placeholder="New Name" name="name"><br>
+        <input type="number" placeholder="New Price" name="price"><br>
+        <select name="category">
+          <option value="saree">Saree</option>
+        </select><br>
+        <select name="type">
+          <option value="">Select Type</option>
+          <option value="kanchi">Kanchi</option>
+          <option value="linen">Linen</option>
+          <option value="mulcotton">Mul Cotton</option>
+        </select><br>
+        <input type="file" name="image"><br>
+        <button type="submit">Update</button>
+      </form>
+    </div>
+  `).join('');
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  const res = await fetch(`/delete-product/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  document.getElementById("msg").innerText = data.message;
+  loadProducts();
+}
+
+async function updateProduct(e, id) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const res = await fetch(`/update-product/${id}`, {
+    method: 'PUT',
+    body: formData
+  });
+  const data = await res.json();
+  document.getElementById("msg").innerText = data.message;
+  loadProducts();
+}
+
 document.getElementById("productForm").onsubmit = async (e) => {
   e.preventDefault();
-
   const formData = new FormData(e.target);
-
   const res = await fetch('/add-product', {
     method: 'POST',
     body: formData
   });
-
   const data = await res.json();
-
   document.getElementById("msg").innerText = data.message;
-
   e.target.reset();
+  loadProducts();
 };
+
+loadProducts();
 </script>
 
 </body>

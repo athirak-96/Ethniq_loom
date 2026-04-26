@@ -114,16 +114,66 @@ def add_product():
 
 
 # ======================
-# GET PRODUCTS
+# DELETE PRODUCT (protected)
 # ======================
-@app.route('/products', methods=['GET'])
-def get_products():
+@app.route('/delete-product/<int:product_id>', methods=['DELETE'])
+@require_admin
+def delete_product(product_id):
     conn   = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM products")
-    products = [dict(row) for row in cursor.fetchall()]
+    cursor.execute("DELETE FROM products WHERE id = ?", (product_id,))
+    conn.commit()
     conn.close()
-    return jsonify(products)
+    return jsonify({"message": "Product deleted successfully!"})
+
+
+# ======================
+# UPDATE PRODUCT (protected)
+# ======================
+@app.route('/update-product/<int:product_id>', methods=['PUT'])
+@require_admin
+def update_product(product_id):
+    name     = request.form.get('name')
+    price    = request.form.get('price')
+    category = request.form.get('category')
+    type_    = request.form.get('type')
+
+    update_fields = []
+    update_values = []
+
+    if name:
+        update_fields.append("name = ?")
+        update_values.append(name)
+    if price:
+        update_fields.append("price = ?")
+        update_values.append(price)
+    if category:
+        update_fields.append("category = ?")
+        update_values.append(category.lower())
+    if type_:
+        update_fields.append("type = ?")
+        update_values.append(type_)
+
+    if 'image' in request.files:
+        image_file = request.files['image']
+        filename   = secure_filename(image_file.filename)
+        filepath   = os.path.join(UPLOAD_FOLDER, filename)
+        image_file.save(filepath)
+        update_fields.append("image = ?")
+        update_values.append(f"images/{filename}")
+
+    if not update_fields:
+        return jsonify({"message": "No fields to update"}), 400
+
+    update_values.append(product_id)
+
+    conn   = get_db()
+    cursor = conn.cursor()
+    cursor.execute(f"UPDATE products SET {', '.join(update_fields)} WHERE id = ?", update_values)
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Product updated successfully!"})
 
 
 @app.route('/images/<path:filename>')
